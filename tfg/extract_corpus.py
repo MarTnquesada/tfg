@@ -29,7 +29,7 @@ def main():
     checked_article_pairs = 0
     source_lang_f = open(args.source_lang_plaintext, 'w')
     target_lang_f = open(args.target_lang_plaintext, 'w')
-    print(f'Started extracting from {args.corpus}')
+    print(f'Started extracting from {args.xml_corpus}')
     print(f'Total number of article pairs: {total_article_pairs}')
     print('---------------------------------------------------\n')
 
@@ -47,7 +47,7 @@ def main():
             target_lang_f.write(target_content_plaintext)
         # increase number of checked article pairs and print an update every batch
         checked_article_pairs += 1
-        if checked_article_pairs % 100 == 0:
+        if checked_article_pairs % 1000 == 0:
             print(f'{checked_article_pairs}/{total_article_pairs} checked article pairs')
 
 
