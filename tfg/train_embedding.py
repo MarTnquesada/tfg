@@ -2,9 +2,15 @@ from gensim.models import FastText
 import fasttext as fasttext
 from gensim.test.utils import datapath
 import argparse
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+LOGGER = logging.getLogger()
 
 
 def train_facebook_fasttext_embedding(data, emb_nm, minn=3, maxn=6, dim=100, epoch=5, lr=0.05, thread=4, max_vocab_size=200000):
+    LOGGER.info("Training source language embedding...")
     # unsupervised training with custom parameters
     emb = fasttext.train_unsupervised(data, minn=minn, maxn=maxn, dim=dim, epoch=epoch, lr=lr, thread=thread)
 
@@ -15,10 +21,12 @@ def train_facebook_fasttext_embedding(data, emb_nm, minn=3, maxn=6, dim=100, epo
 
     # saving trained model
     emb.save_model(emb_nm)
+    LOGGER.info("Finished training source language embedding")
 
 
 def train_gensim_fasttex_embedding(corpus_relative_path, emb_nm, minn=3, maxn=6, dim=100, epoch=5, lr=0.05, thread=4,
                             max_vocab_size=200000):
+    LOGGER.info("Training source language embedding...")
     corpus_absolute_path = datapath(corpus_relative_path)
     # unsupervised training with custom parameters
     model = FastText(size=4, window=3, min_count=1)
@@ -30,7 +38,8 @@ def train_gensim_fasttex_embedding(corpus_relative_path, emb_nm, minn=3, maxn=6,
     # del emb.words[max_vocab_size:]
 
     # saving trained model
-    model.save_model(emb_nm)
+    emb.save_model(emb_nm)
+    LOGGER.info("Finished training source language embedding")
 
 
 def main():
@@ -43,15 +52,15 @@ def main():
                         help='maximum size of the vocabulary represented in the word embedding')
     args = parser.parse_args()
 
-    train_facebook_fasttext_embedding(args.src_data, args.src_emb,
-                         thread=args.thread, minn=3, maxn=6, dim=300, epoch=5, lr=0.05,
+    train_fasttext_embedding(args.src_data, args.src_emb,
+                         thread=args.thread, minn=3, maxn=6, dim=100, epoch=5, lr=0.05,
                          max_vocab_size=args.max_vocab_size)
-    print("Showing a sample of embedding words ordered by frequency")
+    LOGGER.info("Showing a sample of embedding words ordered by frequency")
     emb = fasttext.load_model(args.src_emb)
-    print(emb.get_words())
-    print("Showing nearest neighbours of top 3 words")
+    LOGGER.info(emb.get_words())
+    LOGGER.info("Showing nearest neighbours of top 3 words")
     for n in range(0, 3):
-        print(str(n) + ".Nearest neighbours of " + str(emb.get_words()[0]) + ":\n" +
+        LOGGER.info(str(n) + ".Nearest neighbours of " + str(emb.get_words()[0]) + ":\n" +
                     str(emb.get_nearest_neighbors(emb.get_words()[n])))
 
 

@@ -1,5 +1,3 @@
+gensim
 torch
 numpy
-cupy
-pandas
-nltk
