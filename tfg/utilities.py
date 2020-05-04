@@ -1,5 +1,16 @@
 
 
+def readlines_by_chunks(filepath, chunk_size):
+    with open(filepath, 'r') as f:
+        lines = []
+        for i, line in enumerate(f.readlines(), start=1):
+            if i % chunk_size == 0:
+                yield lines
+                lines = []
+        if lines:
+            yield lines
+
+
 def phrase_table_to_dict(src):
     """
     Takes a phrase-table text file as input and converts it into a dictionary

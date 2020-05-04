@@ -1,3 +1,5 @@
 gensim
 torch
 numpy
+pandas
+nltk

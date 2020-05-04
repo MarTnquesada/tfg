@@ -1,5 +1,6 @@
 import argparse
 import xml.etree.ElementTree as ET
+from tqdm import tqdm
 
 
 def parse_elem_plaintext(xml_elem):
@@ -31,9 +32,9 @@ def main():
     target_lang_f = open(args.target_lang_plaintext, 'w')
     print(f'Started extracting from {args.xml_corpus}')
     print(f'Total number of article pairs: {total_article_pairs}')
-    print('---------------------------------------------------\n')
+    print('---------------------------------------------------')
 
-    for article_pair in root[1:]:
+    for article_pair in tqdm(root[1:]):
         source_lang_article = article_pair[0]
         categories = source_lang_article.find('categories').get('name')
         content_plaintext = parse_elem_plaintext(source_lang_article.find('content'))
@@ -45,10 +46,6 @@ def main():
             target_lang_article = article_pair[1]
             target_content_plaintext = parse_elem_plaintext(target_lang_article.find('content'))
             target_lang_f.write(target_content_plaintext)
-        # increase number of checked article pairs and print an update every batch
-        checked_article_pairs += 1
-        if checked_article_pairs % 1000 == 0:
-            print(f'{checked_article_pairs}/{total_article_pairs} checked article pairs')
 
 
 if __name__ == '__main__':
