@@ -1,14 +1,21 @@
 
 
 def readlines_by_chunks(filepath, chunk_size):
+    """
+    Generator
+    :param filepath:
+    :param chunk_size:
+    :return:
+    """
     with open(filepath, 'r') as f:
-        lines = []
+        chunk = ''
         for i, line in enumerate(f.readlines(), start=1):
+            chunk += line
             if i % chunk_size == 0:
-                yield lines
-                lines = []
-        if lines:
-            yield lines
+                yield chunk
+                chunk = ''
+        if chunk:
+            yield chunk
 
 
 def phrase_table_to_dict(src):
