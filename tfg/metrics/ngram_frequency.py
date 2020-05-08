@@ -7,10 +7,10 @@ from tqdm import tqdm
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tokenized_corpus', help='Path to tokenized source corpus')
-    parser.add_argument('--ngram_frequency_json', help='File path in which to save a json-formatted dictionary'
+    parser.add_argument('--ngram_frequency_json', help='File path in which to save a json-formatted dictionaries'
                                                        'containing ngram frequency')
     parser.add_argument('--min_ngram', default=2)
-    parser.add_argument('--max_ngram', default=5)
+    parser.add_argument('--max_ngram', default=4)
     args = parser.parse_args()
 
     ngram_freq_dictionary = {}
@@ -22,7 +22,7 @@ def main():
                 ng = ngrams(words, i)
                 ngram_freq = FreqDist(ng)
                 for key, value in ngram_freq.items():
-                    ngram_freq_dictionary.setdefault(i, {})[key] =  ngram_freq_dictionary.get(i, {}).get(key, 0) + value
+                    ngram_freq_dictionary[' '.join(key)] = ngram_freq_dictionary.get(' '.join(key), 0) + value
 
     with open(args.ngram_frequency_json, 'w') as fjson:
         json.dump(ngram_freq_dictionary, fjson)

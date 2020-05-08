@@ -1,6 +1,7 @@
 import argparse
 import xml.etree.ElementTree as ET
 from tfg.utilities import phrase_table_to_dict, validation_file_to_dict
+import json
 
 
 def parse_mesh(xml_tree):
@@ -48,18 +49,24 @@ def parse_mesh(xml_tree):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mesh_xml_file', help='Path of the xml file in disk in which the used mesh record is contained')
-    parser.add_argument('--translation_dictionary_file', help='Path of the xml file in disk in which the used mesh record is contained')
-    parser.add_argument('--phrase_table', default=False, action='store_true',
+    parser.add_argument('--translation_phrase_table', help='Translation phrase-table')
+    parser.add_argument('--phrase_table', default=True, action='store_true',
                         help='True if the translation file is in phrase-table format')
+    parser.add_argument('--target_language_freqs', help='JSON file containing a dictionary with ngram frequencies '
+                                                        'in the target language')
+    parser.add_argument('--translated_mesh', help='Translated Mesh thesaurus')
+    args = parser.parse_args()
+
     args = parser.parse_args()
 
     tree = ET.parse(args.mesh_xml_file)
     hierarchical_dict, descriptor_list = parse_mesh(tree)
     if args.phrase_table:
-        translation_dict = phrase_table_to_dict(args.src_path)
+        translation_dict = phrase_table_to_dict(args.translation_phrase_table)
     else:
-        translation_dict = validation_file_to_dict(args.src_path)
-
+        translation_dict = validation_file_to_dict(args.translation_phrase_table)
+    ngram_freqs_json = open(args.target_language_freqs, 'r')
+    ngram_freqs = json.load(ngram_freqs_json)
 
 if __name__ == '__main__':
     main()

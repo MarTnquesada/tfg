@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import os
 from tqdm import tqdm
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--rootdir', help='Path of the xml corpus directory in disk in which the used corpus is contained')
@@ -38,6 +39,7 @@ def main():
                 target_lang_title = metadata.find('.//{http://purl.org/dc/elements/1.1/}title[@{http://www.w3.org/XML/1998/namespace}lang="es"]')
                 source_lang_description = metadata.find('.//{http://purl.org/dc/elements/1.1/}description[@{http://www.w3.org/XML/1998/namespace}lang="en"]')
                 target_lang_description = metadata.find('.//{http://purl.org/dc/elements/1.1/}description[@{http://www.w3.org/XML/1998/namespace}lang="es"]')
+            # even documents are considered for the source language, while we only use the target language section of the odd ones
             if i % 2 == 0:
                 if source_lang_title is not None and source_lang_title.text is not None:
                     source_lang_f.write(source_lang_title.text.replace('[', '').replace(']', '') + '\n')
