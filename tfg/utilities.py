@@ -1,5 +1,47 @@
 
 
+def parse_mesh(xml_tree):
+    # create a list containing all descriptors in the MESH thesaurus represented as dictionaries
+    descriptor_list= []
+    root = xml_tree.getroot()
+    for descriptor_record in root:
+        descriptor_dict = {}
+        descriptor_dict['class'] = descriptor_record.get('DescriptorClass')
+        descriptor_dict['name'] = descriptor_record.find('DescriptorName').find('String').text
+        tree_numbers = descriptor_record.find('TreeNumberList')
+        descriptor_dict['tree_numbers'] = [tree_number.text for tree_number in tree_numbers]
+        descriptor_concepts = descriptor_record.find('ConceptList')
+        concept_list = []
+        for concept in descriptor_concepts:
+            concept_dict = {}
+            concept_dict['name'] = concept.find('ConceptName').find('String').text
+            concept_terms = concept.find('TermList')
+            term_list = []
+            for term in concept_terms:
+                term_dict = {}
+                term_dict['is_preferred_concept'] = term.get('ConceptPreferredTermYN')
+                term_dict['is_permuted'] = term.get('IsPermutedTermYN')
+                term_dict['lexical_tag'] = term.get('LexicalTag')
+                term_dict['name'] = term.find('String').text
+                term_dict['is_preferred_record'] = term.get('RecordPreferredTermYN')
+                term_list.append(term_dict)
+            concept_dict['terms'] = term_list
+            concept_list.append(concept_dict)
+        descriptor_dict['concepts'] = concept_list
+        descriptor_list.append(descriptor_dict)
+
+    # use the list of dictionaries obtained to build a hierarchical dictionary representing tree_number relations
+    hierarchical_dict = {}
+    for descriptor in descriptor_list:
+        for tree_number in descriptor['tree_numbers']:
+            parts = tree_number.split('.')
+            branch = hierarchical_dict
+            for i, level in enumerate(parts[:-1]):
+                branch = branch.setdefault(level, {})
+            branch[parts[:-1]] = descriptor
+    return hierarchical_dict, descriptor_list
+
+
 def readlines_by_chunks(filepath, chunk_size):
     """
     Generator
