@@ -13,13 +13,14 @@ def main():
                         help='Language of the used MESH thesaurus')
     parser.add_argument('--parsed_mesh', help='Path to the pickle file containing the parsed MESH thesaurus')
     parser.add_argument('--classified_docs', help='csv file that will contain the classified documents for evaluation')
+    parser.add_argument('--limit', default=5000, help='Number of documents to classify in natural order')
     args = parser.parse_args()
 
     hierarchical_dict, descriptor_list = pickle.load(open(args.parsed_mesh, 'rb'))
     df = pd.DataFrame()
 
     for rootdir, dirs, files in os.walk(args.corpus_path):
-        for path in tqdm(files):
+        for path in tqdm(files[:args.limit]):
             with open(os.path.join(rootdir, path), 'r') as f:
                 tree = ET.parse(os.path.join(rootdir, path))
                 root = tree.getroot()

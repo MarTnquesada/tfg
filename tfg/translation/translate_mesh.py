@@ -35,9 +35,11 @@ def main():
     for descriptor in tqdm(descriptor_list):
         for concept in descriptor['concepts']:
             for term in concept['terms']:
+                print(term)
                 translated_term = obtain_ngram_translation(
                     term['name'].lower(), translation_dict, target_language_model, max_translation_entries=3)
                 term['name'] = ' '.join(translated_term)
+                print(translated_term)
 
     # storing parsed translated thesaurus as a serialized python object
     pickle.dump(descriptor_list, open(args.translated_mesh, 'rb'))
