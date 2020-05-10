@@ -4,6 +4,7 @@ from tfg.utilities import phrase_table_to_dict, validation_file_to_dict
 from tfg.translation.refine_ngram_candidates import obtain_ngram_translation
 from tfg.utilities import parse_mesh
 import pickle
+from tqdm import tqdm
 
 
 def main():
@@ -18,18 +19,28 @@ def main():
 
     args = parser.parse_args()
 
+    # load translation dictionary, MESH thesaurus and language model
+    print('Parsing and loading MESH thesaurus')
     tree = ET.parse(args.mesh_xml_file)
     hierarchical_dict, descriptor_list = parse_mesh(tree)
+    print('Loading translation dictionary')
     if args.phrase_table:
         translation_dict = phrase_table_to_dict(args.translation_phrase_table)
     else:
         translation_dict = validation_file_to_dict(args.translation_phrase_table)
+    print("Loading language model")
     target_language_model = pickle.load(open(args.target_language_model, 'rb'))
-    for descriptor in descriptor_list:
-        for i, term in enumerate(descriptor['terms']):
-            translated_term = obtain_ngram_translation(
-                term, translation_dict, target_language_model, max_translation_entries=3)
-            descriptor[i] = translated_term
+
+    # translating parsed mesh thesaurus
+    for descriptor in tqdm(descriptor_list):
+        for concept in descriptor['concepts']:
+            for term in concept['terms']:
+                translated_term = obtain_ngram_translation(
+                    term['name'].lower(), translation_dict, target_language_model, max_translation_entries=3)
+                term['name'] = ' '.join(translated_term)
+
+    # storing parsed translated thesaurus as a serialized python object
+    pickle.dump(descriptor_list, open(args.translated_mesh, 'rb'))
 
 
 if __name__ == '__main__':

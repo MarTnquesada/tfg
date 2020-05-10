@@ -9,7 +9,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tokenized_corpus', help='Path to tokenized source corpus')
     parser.add_argument('--model', help='File path in which to save the language model')
-    parser.add_argument('--n', default=3, type=int)
+    parser.add_argument('--n', default=2, type=int)
     args = parser.parse_args()
 
     # create model

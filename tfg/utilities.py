@@ -9,7 +9,10 @@ def parse_mesh(xml_tree):
         descriptor_dict['class'] = descriptor_record.get('DescriptorClass')
         descriptor_dict['name'] = descriptor_record.find('DescriptorName').find('String').text
         tree_numbers = descriptor_record.find('TreeNumberList')
-        descriptor_dict['tree_numbers'] = [tree_number.text for tree_number in tree_numbers]
+        if tree_numbers:
+            descriptor_dict['tree_numbers'] = [tree_number.text for tree_number in tree_numbers]
+        else:
+            descriptor_dict['tree_numbers'] = []
         descriptor_concepts = descriptor_record.find('ConceptList')
         concept_list = []
         for concept in descriptor_concepts:
@@ -38,7 +41,7 @@ def parse_mesh(xml_tree):
             branch = hierarchical_dict
             for i, level in enumerate(parts[:-1]):
                 branch = branch.setdefault(level, {})
-            branch[parts[:-1]] = descriptor
+            branch[parts[-1]] = descriptor
     return hierarchical_dict, descriptor_list
 
 
