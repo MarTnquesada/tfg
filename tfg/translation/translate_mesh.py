@@ -1,9 +1,9 @@
 import argparse
 import xml.etree.ElementTree as ET
 from tfg.utilities import phrase_table_to_dict, validation_file_to_dict
-import pickle
 from tfg.translation.refine_ngram_candidates import obtain_ngram_translation
 from tfg.utilities import parse_mesh
+import pickle
 
 
 def main():
@@ -25,6 +25,11 @@ def main():
     else:
         translation_dict = validation_file_to_dict(args.translation_phrase_table)
     target_language_model = pickle.load(open(args.target_language_model, 'rb'))
+    for descriptor in descriptor_list:
+        for i, term in enumerate(descriptor['terms']):
+            translated_term = obtain_ngram_translation(
+                term, translation_dict, target_language_model, max_translation_entries=3)
+            descriptor[i] = translated_term
 
 
 if __name__ == '__main__':

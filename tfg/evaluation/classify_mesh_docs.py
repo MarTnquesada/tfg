@@ -4,7 +4,6 @@ import os
 import argparse
 from tqdm import tqdm
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--rootdir', help='Path of the xml corpus directory in disk in which the used corpus is contained')
