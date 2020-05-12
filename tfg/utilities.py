@@ -74,7 +74,7 @@ def phrase_table_to_dict(src):
     with open(src, mode='r',) as f:
         for line in f:
             entry = line.split()
-            pt_dict.setdefault(entry[0], []).append(entry[2])
+            pt_dict.setdefault(entry[0], []).append((entry[2], float(entry[4])))
     return pt_dict
 
 

@@ -5,6 +5,7 @@ from tfg.translation.refine_ngram_candidates import obtain_ngram_translation
 from tfg.utilities import parse_mesh
 import pickle
 from tqdm import tqdm
+from tfg.translation.ngram_translator import NgramTranslator
 
 
 def main():
@@ -30,14 +31,15 @@ def main():
         translation_dict = validation_file_to_dict(args.translation_phrase_table)
     print("Loading language model")
     target_language_model = pickle.load(open(args.target_language_model, 'rb'))
+    translator = NgramTranslator(translation_dict, target_language_model)
 
     # translating parsed mesh thesaurus
     for descriptor in tqdm(descriptor_list):
         for concept in descriptor['concepts']:
             for term in concept['terms']:
                 print(term)
-                translated_term = obtain_ngram_translation(
-                    term['name'].lower(), translation_dict, target_language_model, max_translation_entries=3)
+                translated_term = ' '.join(translator.ngram_translation(
+                    term['name'].lower().split(), topk=3, use_lm=True, lm_scaling=0.1, lex_scaling=1.0, beam_size=10))
                 term['name'] = ' '.join(translated_term)
                 print(translated_term)
 
