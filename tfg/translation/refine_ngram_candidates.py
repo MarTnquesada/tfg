@@ -28,7 +28,7 @@ def obtain_ngram_translation(original_term, translation_dictionary, target_lang_
 def main():
     original_term = 'the doctor'.lower()
     translation_dictionary = phrase_table_to_dict('../../data/pubmedplusibecs_en_3_6_300_cross_es_phrase_table.pt')
-    target_lang_model = pickle.load(open('../../models/pubmedplusibecs_es_asym_MLE', 'rb'))
+    target_lang_model = pickle.load(open('../../models/pubmedplusibecs_es_asym_MLE_n2', 'rb'))
     translated_term = obtain_ngram_translation(original_term, translation_dictionary, target_lang_model)
     print(target_lang_model.score(translated_term[-1], translated_term[:-1]))
     print(' '.join(translated_term))
