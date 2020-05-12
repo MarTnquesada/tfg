@@ -2,6 +2,6 @@ gensim
 torch
 numpy
 pandas
-nltk
+nltk==3.5
 fasttext
 XlsxWriter
