@@ -1,7 +1,6 @@
 import argparse
 import xml.etree.ElementTree as ET
 from tfg.utilities import phrase_table_to_dict, validation_file_to_dict
-from tfg.translation.refine_ngram_candidates import obtain_ngram_translation
 from tfg.utilities import parse_mesh
 import pickle
 from tqdm import tqdm
@@ -43,7 +42,7 @@ def main():
                 term['name'] = ' '.join(translated_term)
 
     # storing parsed translated thesaurus as a serialized python object
-    pickle.dump(descriptor_list, open(args.translated_mesh, 'wb'))
+    pickle.dump([hierarchical_dict, descriptor_list], open(args.translated_mesh, 'wb'))
 
 
 if __name__ == '__main__':

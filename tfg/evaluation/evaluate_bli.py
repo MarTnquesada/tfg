@@ -17,7 +17,7 @@ def mean_reciprocal_rank(bili_dict, validation_dict):
     for k, v in validation_dict.items():
         candidates = bili_dict.get(k, [])
         if candidates:
-            for i, term in enumerate(candidates, start=1):
+            for i, (term, translation_probability) in enumerate(candidates, start=1):
                 if term == v[0]:
                     score += 1/i
                     break

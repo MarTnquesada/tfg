@@ -6,10 +6,10 @@ from tfg.evaluation.metrics import precision, recall, loss
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source_lang_annotation',
-                        help='CSV file where each row corresponds to an annotation performed over a corpus using '
+                        help='xlsx file where each row corresponds to an annotation performed over a corpus using '
                              'the source language MESH thesaurus')
     parser.add_argument('--target_lang_annotation',
-                        help='CSV file where each row corresponds to an annotation performed over a corpus using '
+                        help='xlsx file where each row corresponds to an annotation performed over a corpus using '
                              'the target language MESH thesaurus')
     args = parser.parse_args()
 
