@@ -2,7 +2,7 @@
 from math import log
 
 
-class NgramTranslator:
+class VecmapNgramTranslator:
     def __init__(self, translation_dictionary, language_model):
         self.translation_dictionary = translation_dictionary
         self.lm = language_model

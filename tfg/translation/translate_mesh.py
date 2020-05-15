@@ -4,7 +4,7 @@ from tfg.utilities import phrase_table_to_dict, validation_file_to_dict
 from tfg.utilities import parse_mesh
 import pickle
 from tqdm import tqdm
-from tfg.translation.ngram_translator import NgramTranslator
+from tfg.translation.vecmap_ngram_translator import VecmapNgramTranslator
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
         translation_dict = validation_file_to_dict(args.translation_phrase_table)
     print("Loading language model")
     target_language_model = pickle.load(open(args.target_language_model, 'rb'))
-    translator = NgramTranslator(translation_dict, target_language_model)
+    translator = VecmapNgramTranslator(translation_dict, target_language_model)
 
     # translating parsed mesh thesaurus
     print('Translating MESH thesaurus')
