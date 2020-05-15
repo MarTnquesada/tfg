@@ -17,8 +17,6 @@ def main():
     parser.add_argument('--translated_mesh', help='Translated Mesh thesaurus')
     args = parser.parse_args()
 
-    args = parser.parse_args()
-
     # load translation dictionary, MESH thesaurus and language model
     print('Parsing and loading MESH thesaurus')
     tree = ET.parse(args.mesh_xml_file)
@@ -42,7 +40,9 @@ def main():
                 term['name'] = ' '.join(translated_term)
 
     # storing parsed translated thesaurus as a serialized python object
+    f =  open(args.translated_mesh, 'wb')
     pickle.dump([hierarchical_dict, descriptor_list], open(args.translated_mesh, 'wb'))
+    f.close()
 
 
 if __name__ == '__main__':

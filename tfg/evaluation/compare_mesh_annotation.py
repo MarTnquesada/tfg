@@ -23,7 +23,7 @@ def main():
         suffixes=('_original', '_target'),
         how='inner')
 
-    # extract global metrics
+    # extract base precision and recall
     n_annots_original = sum(len(descriptors.keys()) for descriptors in aligned_df['descriptors_original'])
     n_annots_target = sum(len(descriptors.keys()) for descriptors in aligned_df['descriptors_target'])
     target_loss = aligned_df.apply(lambda x: len(loss([descriptor_name for descriptor_name, descriptor in x['descriptors_original'].items()],
@@ -33,8 +33,7 @@ def main():
                                                       [descriptor_name for descriptor_name, descriptor in x['descriptors_original'].items()])),
                                    axis=1).values.sum()
     target_correct_hits = n_annots_target - target_gain
-
-    # general precision and recall using micro-average (which is better when not all classes/topics are balanced)
+    # base precision and recall using micro-average (which is better when not all classes/topics are balanced)
     target_precision = precision(target_correct_hits, target_gain)
     target_recall = precision(target_correct_hits, target_loss)
 
