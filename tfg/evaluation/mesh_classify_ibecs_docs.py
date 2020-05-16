@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
 
     if args.parsed_mesh:
-        hierarchical_dict, descriptor_list = pickle.load(open(args.parsed_mesh, 'rb'))
+        hierarchical_dict, descriptor_list = pickle.load(open(args.mesh, 'rb'))
     else:
         tree = ET.parse(args.mesh)
         hierarchical_dict, descriptor_list = parse_mesh(tree)
@@ -39,7 +39,7 @@ def main():
                 source_lang_description = metadata.find('.//{http://purl.org/dc/elements/1.1/}description[@{http://www.w3.org/XML/1998/namespace}lang="' + args.lang + '"]')
                 row = {'id': path.split('/')[-1], 'descriptors':{}}
                 if source_lang_title is not None:
-                    clean_source_lang_title = ' '.join([token.lower_ for token in nlp(source_lang_title)])
+                    clean_source_lang_title = ' '.join([token.lower_ for token in nlp(source_lang_title.text)])
                     for descriptor in descriptor_list:
                         for concept in descriptor['concepts']:
                             for term in concept['terms']:
@@ -48,7 +48,7 @@ def main():
                                     break
 
                 if source_lang_description is not None:
-                    clean_source_lang_description = ' '.join([token.lower_ for token in nlp(source_lang_description)])
+                    clean_source_lang_description = ' '.join([token.lower_ for token in nlp(source_lang_description.text)])
                     for descriptor in descriptor_list:
                         for concept in descriptor['concepts']:
                             for term in concept['terms']:

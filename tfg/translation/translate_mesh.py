@@ -37,10 +37,10 @@ def main():
             for term in concept['terms']:
                 translated_term = ' '.join(translator.ngram_translation(
                     term['name'].lower().split(), topk=3, use_lm=True, lm_scaling=0.1, lex_scaling=1.0, beam_size=10))
-                term['name'] = ' '.join(translated_term)
+                term['name'] = translated_term
 
     # storing parsed translated thesaurus as a serialized python object
-    f =  open(args.translated_mesh, 'wb')
+    f = open(args.translated_mesh, 'wb')
     pickle.dump((hierarchical_dict, descriptor_list), open(args.translated_mesh, 'wb'))
     f.close()
 
