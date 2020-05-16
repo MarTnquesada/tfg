@@ -41,7 +41,7 @@ def main():
 
     # storing parsed translated thesaurus as a serialized python object
     f =  open(args.translated_mesh, 'wb')
-    pickle.dump([hierarchical_dict, descriptor_list], open(args.translated_mesh, 'wb'))
+    pickle.dump((hierarchical_dict, descriptor_list), open(args.translated_mesh, 'wb'))
     f.close()
 
 
