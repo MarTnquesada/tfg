@@ -5,3 +5,4 @@ pandas
 nltk==3.5
 fasttext
 XlsxWriter
+xlrd

@@ -45,6 +45,21 @@ def parse_mesh(xml_tree):
     return hierarchical_dict, descriptor_list
 
 
+def mesh_ancestors(hierarchical_dict, descriptor):
+    ancestors = [descriptor]
+    for number in descriptor['tree_numbers']:
+        current_level = ''
+        aux_node = hierarchical_dict
+        for level in number.split('.')[:-1]:
+            aux_node = aux_node[level]
+        ancestors.append(aux_node)
+    return ancestors
+
+
+def flatten(iterator_of_iterators):
+    return [item for sublist in iterator_of_iterators for item in sublist]
+
+
 def readlines_by_chunks(filepath, chunk_size):
     """
     Generator

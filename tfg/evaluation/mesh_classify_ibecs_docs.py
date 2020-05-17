@@ -37,14 +37,15 @@ def main():
                 metadata = root.find('record')[1]
                 source_lang_title = metadata.find('.//{http://purl.org/dc/elements/1.1/}title[@{http://www.w3.org/XML/1998/namespace}lang="' + args.lang + '"]')
                 source_lang_description = metadata.find('.//{http://purl.org/dc/elements/1.1/}description[@{http://www.w3.org/XML/1998/namespace}lang="' + args.lang + '"]')
-                row = {'id': path.split('/')[-1], 'descriptors':{}}
+                row = {'id': path.split('/')[-1], 'descriptors':[]}
                 if source_lang_title is not None:
                     clean_source_lang_title = ' '.join([token.lower_ for token in nlp(source_lang_title.text)])
                     for descriptor in descriptor_list:
                         for concept in descriptor['concepts']:
                             for term in concept['terms']:
                                 if term['name'].lower() in clean_source_lang_title:
-                                    row['descriptors'][descriptor['name']] = descriptor
+                                    row['descriptors'].append(
+                                        {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers']})
                                     break
 
                 if source_lang_description is not None:
@@ -53,7 +54,8 @@ def main():
                         for concept in descriptor['concepts']:
                             for term in concept['terms']:
                                 if term['name'].lower() in clean_source_lang_description:
-                                    row['descriptors'][descriptor['name']] = descriptor
+                                    row['descriptors'].append(
+                                        {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers']})
                                     break
                 rows.append(row)
 
