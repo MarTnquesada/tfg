@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
-from tfg.evaluation.metrics import precision, recall, loss, hprecision, hrecall, f_score
-from tfg.utilities import parse_mesh, mesh_ancestors, flatten
+from tfg.evaluation.metrics import precision, recall, loss, f_score
+from tfg.utilities import parse_mesh, mesh_ancestors, mesh_lowest_common_ancestors, flatten
 import pickle
 import xml.etree.ElementTree as ET
 
@@ -35,36 +35,69 @@ def main():
         target_annots_df[['descriptors', 'id']], on=['id'],
         suffixes=('_original', '_target'),
         how='inner')
+    # parse structured data contained in the spreadsheet
+    aligned_df['descriptors_original'] = aligned_df['descriptors_original'].apply(
+        lambda x: eval(x))
+    aligned_df['descriptors_target'] = aligned_df['descriptors_target'].apply(
+        lambda x: eval(x))
 
-    # extract base precision and recall
-    n_annots_original = sum(len(set(descriptors)) for descriptors in aligned_df['descriptors_original'])
-    n_annots_target = sum(len(set(descriptors)) for descriptors in aligned_df['descriptors_target'])
-    target_loss = aligned_df.apply(lambda x: len(loss([descriptor['name'] for descriptor in x['descriptors_original']],
+    # base precision, recall and f_score using micro-average (which is better when not all classes/topics are balanced)
+    base_n_annots_original = sum(len(set([d['name'] for d in descriptors])) for descriptors in aligned_df['descriptors_original'])
+    base_n_annots_target = sum(len(set([d['name'] for d in descriptors])) for descriptors in aligned_df['descriptors_target'])
+    base_target_loss = aligned_df.apply(lambda x: len(loss([descriptor['name'] for descriptor in x['descriptors_original']],
                                                       [descriptor['name'] for descriptor in x['descriptors_target']])),
                                    axis=1).values.sum()
-    target_gain = aligned_df.apply(lambda x: len(loss([descriptor['name'] for descriptor in x['descriptors_target']],
+    base_target_gain = aligned_df.apply(lambda x: len(loss([descriptor['name'] for descriptor in x['descriptors_target']],
                                                       [descriptor['name'] for descriptor in x['descriptors_original']])),
                                    axis=1).values.sum()
-    target_correct_hits = n_annots_target - target_gain
-    # base precision, recall and f_score using micro-average (which is better when not all classes/topics are balanced)
-    base_precision = precision(target_correct_hits, target_gain)
-    base_recall = recall(target_correct_hits, target_loss)
+    base_target_correct_hits = base_n_annots_target - base_target_gain
+    base_precision = precision(base_target_correct_hits, base_target_gain)
+    base_recall = recall(base_target_correct_hits, base_target_loss)
     base_f_score = f_score(base_precision, base_recall)
 
-    # extract hierarchical precision and recall based on lowest common ancestor
+    # hierarchical precision and recall based on ancestors using micro-average
     aligned_df['y_original'] = aligned_df['descriptors_original'].apply(
-        lambda x: flatten([mesh_ancestors(hierarchical_dict, descriptor) for name, descriptor in x]))
+        lambda x: flatten([mesh_ancestors(descriptor['tree_numbers']) for descriptor in x]))
     aligned_df['y_target'] = aligned_df['descriptors_target'].apply(
-        lambda x: flatten([mesh_ancestors(hierarchical_dict, descriptor) for name, descriptor in x]))
-    aligned_df['hprecision'] = aligned_df.apply(
-        lambda x: hprecision(x['y_original'], x['y_target']), axis=1)
-    aligned_df['hrecall'] = aligned_df.apply(
-        lambda x: hrecall(x['y_original'], x['y_target']), axis=1)
-    aligned_df['hf_score'] = aligned_df.apply(
-        lambda x: f_score(x['hprecision'], x['hrecall']), axis=1)
-    hierachical_precision = aligned_df['hprecision'].values.mean()
-    hierachical_recall = aligned_df['hrecall'].values.mean()
-    hierachical_f_score = aligned_df['hf_score'].values.mean()
+        lambda x: flatten([mesh_ancestors(descriptor['tree_numbers']) for descriptor in x]))
+    hierarchical_n_annots_original = sum(
+        len(set([number for number in tree_numbers])) for tree_numbers in aligned_df['y_original'])
+    hierarchical_n_annots_target = sum(
+        len(set([number for number in tree_numbers])) for tree_numbers in aligned_df['y_target'])
+    hierarchical_target_loss = aligned_df.apply(
+        lambda x: len(loss([number for number in x['y_original']],
+                           [number for number in x['y_target']])),
+        axis=1).values.sum()
+    hierarchical_target_gain = aligned_df.apply(
+        lambda x: len(loss([number for number in x['y_target']],
+                           [number for number in x['y_original']])),
+        axis=1).values.sum()
+    hierarchical_target_correct_hits = hierarchical_n_annots_target - hierarchical_target_gain
+    hierarchical_precision = precision(hierarchical_target_correct_hits, hierarchical_target_gain)
+    hierarchical_recall = recall(hierarchical_target_correct_hits, hierarchical_target_loss)
+    hierarchical_f_score = f_score(hierarchical_precision, hierarchical_recall)
+
+    # hierarchical precision and recall based on lowest common ancestor using micro-average
+    aligned_df['yag_original'] = aligned_df['descriptors_original'].apply(
+        lambda x: flatten([mesh_lowest_common_ancestors(descriptor['tree_numbers']) for descriptor in x]))
+    aligned_df['yag_target'] = aligned_df['descriptors_target'].apply(
+        lambda x: flatten([mesh_lowest_common_ancestors(descriptor['tree_numbers']) for descriptor in x]))
+    lca_hierarchical_n_annots_original = sum(
+        len(set([number for number in tree_numbers])) for tree_numbers in aligned_df['yag_original'])
+    lca_hierarchical_n_annots_target = sum(
+        len(set([number for number in tree_numbers])) for tree_numbers in aligned_df['yag_target'])
+    lca_hierarchical_target_loss = aligned_df.apply(
+        lambda x: len(loss([number for number in x['yag_original']],
+                           [number for number in x['yag_target']])),
+        axis=1).values.sum()
+    lca_hierarchical_target_gain = aligned_df.apply(
+        lambda x: len(loss([number for number in x['yag_target']],
+                           [number for number in x['yag_original']])),
+        axis=1).values.sum()
+    lca_hierarchical_target_correct_hits = lca_hierarchical_n_annots_target - lca_hierarchical_target_gain
+    lca_hierarchical_precision = precision(lca_hierarchical_target_correct_hits, lca_hierarchical_target_gain)
+    lca_hierarchical_recall = recall(lca_hierarchical_target_correct_hits, lca_hierarchical_target_loss)
+    lca_hierarchical_f_score = f_score(lca_hierarchical_precision, lca_hierarchical_recall)
 
 
 if __name__ == '__main__':

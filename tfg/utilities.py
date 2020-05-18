@@ -1,3 +1,4 @@
+from os.path import commonprefix
 
 
 def parse_mesh(xml_tree):
@@ -45,14 +46,25 @@ def parse_mesh(xml_tree):
     return hierarchical_dict, descriptor_list
 
 
-def mesh_ancestors(hierarchical_dict, descriptor):
-    ancestors = [descriptor]
-    for number in descriptor['tree_numbers']:
-        current_level = ''
-        aux_node = hierarchical_dict
-        for level in number.split('.')[:-1]:
-            aux_node = aux_node[level]
-        ancestors.append(aux_node)
+def mesh_ancestors(tree_numbers):
+    ancestors = []
+    for number in tree_numbers:
+        ancestors += ['.'.join(number.split('.')[:i+1]) for i, level in enumerate(number.split('.'))]
+    return ancestors
+
+
+def mesh_lowest_common_ancestors(tree_numbers):
+    ancestors = []
+    if len(tree_numbers) <= 1:
+        for number in tree_numbers:
+            ancestors += ['.'.join(number.split('.')[:i + 1]) for i, level in enumerate(number.split('.'))]
+    else:
+        # TODO fix lca so that it only selects a level, not any prefixing string
+        lca = commonprefix(tree_numbers)
+        ancestors.append(lca)
+        for number in tree_numbers:
+            ancestors += ['.'.join(number.split('.')[:i+1]) for i, level in enumerate(number.split('.'),
+                                                                            start=len(lca.split('.')))]
     return ancestors
 
 

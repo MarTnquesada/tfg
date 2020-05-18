@@ -1,3 +1,4 @@
+import numpy as np
 
 
 def loss(reference_list, observed_list):
@@ -26,7 +27,7 @@ def precision(true_positives, false_positives):
     try:
         return true_positives / (true_positives + false_positives)
     except ZeroDivisionError:
-        return true_positives
+        return np.nan
 
 
 def recall(true_positives, false_negatives):
@@ -39,25 +40,11 @@ def recall(true_positives, false_negatives):
     try:
         return true_positives / (true_positives + false_negatives)
     except ZeroDivisionError:
-        return true_positives
-
-
-def hprecision(original_y, estimated_y):
-    try:
-        len(set(original_y).intersection(set(estimated_y))) / len(set(estimated_y))
-    except ZeroDivisionError:
-        return len(set(original_y).intersection(set(original_y)))
-
-
-def hrecall(original_y, estimated_y):
-    try:
-        len(set(original_y).intersection(set(estimated_y))) / len(set(estimated_y))
-    except ZeroDivisionError:
-        return len(set(original_y).intersection(set(estimated_y)))
+        return np.nan
 
 
 def f_score(precision, recall):
     try:
         return 2*precision*recall/(precision+recall)
     except ZeroDivisionError:
-        return 2*precision*recall
+        return np.nan
