@@ -55,16 +55,17 @@ def mesh_ancestors(tree_numbers):
 
 def mesh_lowest_common_ancestors(tree_numbers):
     ancestors = []
-    common_suffix = commonprefix([reversed(number) for number in tree_numbers])
-    lca_splitted = list(reversed(common_suffix))
+    lca_splitted =  commonprefix(tree_numbers).split('.')
     if len(tree_numbers) <= 1 or not lca_splitted or (len(lca_splitted) == 1 and len(lca_splitted[0]) < 3):
         for number in tree_numbers:
             ancestors += ['.'.join(number.split('.')[:i + 1]) for i, level in enumerate(number.split('.'))]
     else:
         if len(lca_splitted[0]) < 3:
             lca_splitted = lca_splitted[1:]
-        # TODO
-
+        ancestors.append('.'.join(lca_splitted))
+        for number in tree_numbers:
+            ancestors += ['.'.join(number.split('.')[:i + 1]) for i, level in enumerate(number.split('.'),
+                                                                                        start=len(lca_splitted))]
     return ancestors
 
 
