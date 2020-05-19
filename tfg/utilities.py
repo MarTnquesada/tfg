@@ -72,6 +72,10 @@ def mesh_lowest_common_ancestors(tree_numbers):
 def flatten(iterator_of_iterators):
     return [item for sublist in iterator_of_iterators for item in sublist]
 
+def contains_word(tokenized_text, tokenized_word):
+    if f' {tokenized_word} ' in tokenized_text:
+        return True
+
 
 def readlines_by_chunks(filepath, chunk_size):
     """

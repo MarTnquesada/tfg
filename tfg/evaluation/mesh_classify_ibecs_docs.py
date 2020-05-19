@@ -5,7 +5,7 @@ import spacy
 import argparse
 from tqdm import tqdm
 import pickle
-from tfg.utilities import parse_mesh
+from tfg.utilities import parse_mesh, contains_word
 
 
 def main():
@@ -38,22 +38,17 @@ def main():
                 source_lang_title = metadata.find('.//{http://purl.org/dc/elements/1.1/}title[@{http://www.w3.org/XML/1998/namespace}lang="' + args.lang + '"]')
                 source_lang_description = metadata.find('.//{http://purl.org/dc/elements/1.1/}description[@{http://www.w3.org/XML/1998/namespace}lang="' + args.lang + '"]')
                 row = {'id': path.split('/')[-1], 'descriptors':[]}
+                full_text = ''
                 if source_lang_title is not None:
-                    clean_source_lang_title = ' '.join([token.lower_ for token in nlp(source_lang_title.text)])
-                    for descriptor in descriptor_list:
-                        for concept in descriptor['concepts']:
-                            for term in concept['terms']:
-                                if term['name'].lower() in clean_source_lang_title:
-                                    row['descriptors'].append(
-                                        {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers']})
-                                    break
-
+                    full_text += f'{source_lang_title.text} \n'
                 if source_lang_description is not None:
-                    clean_source_lang_description = ' '.join([token.lower_ for token in nlp(source_lang_description.text)])
+                    full_text += f'{source_lang_description.text}'
+                clean_full_text = ' '.join([token.lower_ for token in nlp(full_text)])
+                if clean_full_text:
                     for descriptor in descriptor_list:
                         for concept in descriptor['concepts']:
                             for term in concept['terms']:
-                                if term['name'].lower() in clean_source_lang_description:
+                                if contains_word(clean_full_text, term['name'].lower()):
                                     row['descriptors'].append(
                                         {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers']})
                                     break

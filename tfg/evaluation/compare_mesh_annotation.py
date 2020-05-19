@@ -29,6 +29,8 @@ def main():
     else:
         tree = ET.parse(args.mesh)
         hierarchical_dict, descriptor_list = parse_mesh(tree)
+    descriptor_df = pd.DataFrame(descriptor_list)
+    descriptor_df = descriptor_df[['name', 'tree_numbers']]
 
     # merge both dataframes for easier comparison down the line
     aligned_df = source_annots_df[['descriptors', 'id']].merge(
@@ -98,6 +100,42 @@ def main():
     lca_hierarchical_precision = precision(lca_hierarchical_target_correct_hits, lca_hierarchical_target_gain)
     lca_hierarchical_recall = recall(lca_hierarchical_target_correct_hits, lca_hierarchical_target_loss)
     lca_hierarchical_f_score = f_score(lca_hierarchical_precision, lca_hierarchical_recall)
+
+    # calculate metrics at descriptor level
+    descriptor_df['hits_original'] = descriptor_df['name'].apply(
+        lambda x: [h for hits in aligned_df['descriptors_original'] for h in hits if h['name'] == x])
+    descriptor_df['hits_target'] = descriptor_df['name'].apply(
+        lambda x: [h for hits in aligned_df['descriptors_target'] for h in hits if h['name'] == x])
+    descriptor_df['target_loss'] = descriptor_df.apply(
+        lambda x: len(loss([descriptor['name'] for descriptor in x['hits_original']],
+                           [descriptor['name'] for descriptor in x['hits_target']])),
+        axis=1)
+    descriptor_df['target_gain'] = descriptor_df.apply(
+        lambda x: len(loss([descriptor['name'] for descriptor in x['hits_target']],
+                           [descriptor['name'] for descriptor in x['hits_original']])),
+        axis=1)
+    descriptor_df['target_correct'] = descriptor_df.apply(
+        descriptor_df['hits_target'] - descriptor_df['target_gain'],
+        axis=1)
+    descriptor_df['precision'] = descriptor_df.apply(
+        precision(descriptor_df['target_correct'], descriptor_df['target_gain']),
+        axis=1)
+    descriptor_df['recall'] = descriptor_df.apply(
+        recall(descriptor_df['target_correct'], descriptor_df['target_loss']),
+        axis=1)
+    descriptor_df['f_score'] = descriptor_df.apply(
+        f_score(descriptor_df['precision'], descriptor_df['recall']),
+        axis=1)
+
+    # save data into a table
+    writer = pd.ExcelWriter("MESH_comparison.xlsx", engine='xlsxwriter')
+    summary_data = {'Precision': [base_precision, hierarchical_precision, lca_hierarchical_precision],
+                    'Recall': [base_recall, hierarchical_recall, lca_hierarchical_recall],
+                    'F-score': [base_f_score, hierarchical_f_score, lca_hierarchical_f_score]}
+    summary_df = pd.DataFrame(summary_data, index=['Base', 'Hierarchical', 'Hierarchical (LCA)'])
+    summary_df.to_excel(writer, sheet_name='Summary', index=True)
+    descriptor_df.to_excel(writer, sheet_name='Descriptors')
+    writer.save()
 
 
 if __name__ == '__main__':
