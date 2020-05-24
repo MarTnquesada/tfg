@@ -9,6 +9,7 @@ def parse_mesh(xml_tree):
         descriptor_dict = {}
         descriptor_dict['class'] = descriptor_record.get('DescriptorClass')
         descriptor_dict['name'] = descriptor_record.find('DescriptorName').find('String').text
+        descriptor_dict['ui'] = descriptor_record.find('DescriptorUI').text
         tree_numbers = descriptor_record.find('TreeNumberList')
         if tree_numbers:
             descriptor_dict['tree_numbers'] = [tree_number.text for tree_number in tree_numbers]
@@ -72,7 +73,9 @@ def mesh_lowest_common_ancestors(tree_numbers):
 def flatten(iterator_of_iterators):
     return [item for sublist in iterator_of_iterators for item in sublist]
 
+
 def contains_word(tokenized_text, tokenized_word):
+    tokenized_text = f' {tokenized_text} '
     if f' {tokenized_word} ' in tokenized_text:
         return True
 

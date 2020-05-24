@@ -30,7 +30,8 @@ def main():
         tree = ET.parse(args.mesh)
         hierarchical_dict, descriptor_list = parse_mesh(tree)
     descriptor_df = pd.DataFrame(descriptor_list)
-    descriptor_df = descriptor_df[['name', 'tree_numbers']]
+    # filter data
+    descriptor_df = descriptor_df[['ui', 'tree_numbers', 'name']]
 
     # merge both dataframes for easier comparison down the line
     aligned_df = source_annots_df[['descriptors', 'id']].merge(
@@ -44,13 +45,13 @@ def main():
         lambda x: eval(x))
 
     # base precision, recall and f_score using micro-average (which is better when not all classes/topics are balanced)
-    base_n_annots_original = sum(len(set([d['name'] for d in descriptors])) for descriptors in aligned_df['descriptors_original'])
-    base_n_annots_target = sum(len(set([d['name'] for d in descriptors])) for descriptors in aligned_df['descriptors_target'])
-    base_target_loss = aligned_df.apply(lambda x: len(loss([descriptor['name'] for descriptor in x['descriptors_original']],
-                                                      [descriptor['name'] for descriptor in x['descriptors_target']])),
+    base_n_annots_original = sum(len(set([d['ui'] for d in descriptors])) for descriptors in aligned_df['descriptors_original'])
+    base_n_annots_target = sum(len(set([d['ui'] for d in descriptors])) for descriptors in aligned_df['descriptors_target'])
+    base_target_loss = aligned_df.apply(lambda x: len(loss([descriptor['ui'] for descriptor in x['descriptors_original']],
+                                                      [descriptor['ui'] for descriptor in x['descriptors_target']])),
                                    axis=1).values.sum()
-    base_target_gain = aligned_df.apply(lambda x: len(loss([descriptor['name'] for descriptor in x['descriptors_target']],
-                                                      [descriptor['name'] for descriptor in x['descriptors_original']])),
+    base_target_gain = aligned_df.apply(lambda x: len(loss([descriptor['ui'] for descriptor in x['descriptors_target']],
+                                                      [descriptor['ui'] for descriptor in x['descriptors_original']])),
                                    axis=1).values.sum()
     base_target_correct_hits = base_n_annots_target - base_target_gain
     base_precision = precision(base_target_correct_hits, base_target_gain)
@@ -100,19 +101,20 @@ def main():
     lca_hierarchical_precision = precision(lca_hierarchical_target_correct_hits, lca_hierarchical_target_gain)
     lca_hierarchical_recall = recall(lca_hierarchical_target_correct_hits, lca_hierarchical_target_loss)
     lca_hierarchical_f_score = f_score(lca_hierarchical_precision, lca_hierarchical_recall)
-
+    print(1)
+    """
     # calculate metrics at descriptor level
-    descriptor_df['hits_original'] = descriptor_df['name'].apply(
-        lambda x: [h for hits in aligned_df['descriptors_original'] for h in hits if h['name'] == x])
-    descriptor_df['hits_target'] = descriptor_df['name'].apply(
-        lambda x: [h for hits in aligned_df['descriptors_target'] for h in hits if h['name'] == x])
+    descriptor_df['hits_original'] = descriptor_df['ui'].apply(
+        lambda x: [h for hits in aligned_df['descriptors_original'] for h in hits if h['ui'] == x])
+    descriptor_df['hits_target'] = descriptor_df['ui'].apply(
+        lambda x: [h for hits in aligned_df['descriptors_target'] for h in hits if h['ui'] == x])
     descriptor_df['target_loss'] = descriptor_df.apply(
-        lambda x: len(loss([descriptor['name'] for descriptor in x['hits_original']],
-                           [descriptor['name'] for descriptor in x['hits_target']])),
+        lambda x: len(loss([descriptor['ui'] for descriptor in x['hits_original']],
+                           [descriptor['ui'] for descriptor in x['hits_target']])),
         axis=1)
     descriptor_df['target_gain'] = descriptor_df.apply(
-        lambda x: len(loss([descriptor['name'] for descriptor in x['hits_target']],
-                           [descriptor['name'] for descriptor in x['hits_original']])),
+        lambda x: len(loss([descriptor['ui'] for descriptor in x['hits_target']],
+                           [descriptor['ui'] for descriptor in x['hits_original']])),
         axis=1)
     descriptor_df['target_correct'] = descriptor_df.apply(
         descriptor_df['hits_target'] - descriptor_df['target_gain'],
@@ -136,6 +138,7 @@ def main():
     summary_df.to_excel(writer, sheet_name='Summary', index=True)
     descriptor_df.to_excel(writer, sheet_name='Descriptors')
     writer.save()
+    """
 
 
 if __name__ == '__main__':

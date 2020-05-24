@@ -50,7 +50,8 @@ def main():
                             for term in concept['terms']:
                                 if contains_word(clean_full_text, term['name'].lower()):
                                     row['descriptors'].append(
-                                        {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers']})
+                                        {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers'],
+                                         'ui': descriptor['ui']})
                                     break
                 rows.append(row)
 
