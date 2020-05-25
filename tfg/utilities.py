@@ -56,16 +56,21 @@ def mesh_ancestors(tree_numbers):
 
 def mesh_lowest_common_ancestors(tree_numbers):
     ancestors = []
-    lca_splitted =  commonprefix(tree_numbers).split('.')
-    if len(tree_numbers) <= 1 or not lca_splitted or (len(lca_splitted) == 1 and len(lca_splitted[0]) < 3):
-        for number in tree_numbers:
-            ancestors += ['.'.join(number.split('.')[:i + 1]) for i, level in enumerate(number.split('.'))]
+    aux = commonprefix(tree_numbers)
+    # obtain lca
+    lca_splitted =  commonprefix(tree_numbers).strip('.').split('.')
+    # correct lca on the basis of the actual naming structure in MESH
+    if len(lca_splitted[-1]) < 3:
+        if len(lca_splitted) == 1:
+            lca_splitted = []
+        else:
+            lca_splitted = lca_splitted[:-1]
+    if len(tree_numbers) <= 1 or not lca_splitted:
+        ancestors = mesh_ancestors(tree_numbers)
     else:
-        if len(lca_splitted[0]) < 3:
-            lca_splitted = lca_splitted[1:]
         ancestors.append('.'.join(lca_splitted))
         for number in tree_numbers:
-            ancestors += ['.'.join(number.split('.')[:i + 1]) for i, level in enumerate(number.split('.'),
+            ancestors += ['.'.join(number.split('.')[:i + 1]) for i, level in enumerate(number.split('.')[len(lca_splitted):],
                                                                                         start=len(lca_splitted))]
     return ancestors
 
