@@ -53,7 +53,8 @@ def main():
                                         {'name': descriptor['name'], 'tree_numbers': descriptor['tree_numbers'],
                                          'ui': descriptor['ui']})
                                     break
-                rows.append(row)
+                    # only add row if there is some text to classify
+                    rows.append(row)
 
     df = pd.DataFrame(rows)
     writer = pd.ExcelWriter(args.classified_docs, engine='xlsxwriter')
