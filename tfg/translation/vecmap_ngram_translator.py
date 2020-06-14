@@ -13,6 +13,7 @@ class VecmapNgramTranslator:
         This phase contains several calculations when obtaining a translation from cross-mapped embeddings,
         but since we are using an already induced phrase-table, the process is greatly simplified
         :param src_word:
+        :param topk:
         :return:
         """
         if not self.translation_dictionary.get(src_word, None):
@@ -21,7 +22,7 @@ class VecmapNgramTranslator:
             return [candidate for candidate, score in self.translation_dictionary[src_word][:topk]], \
                    [score for candidate, score in self.translation_dictionary[src_word][:topk]]
 
-    def ngram_translation(self, sent, topk, use_lm=True, lm_scaling=0.1, lex_scaling=1.0, beam_size=10):
+    def mle_ngram_translation(self, sent, topk, use_lm=True, lm_scaling=0.1, lex_scaling=1.0, beam_size=10):
         beam = [[list(), 0.0]]
         for n in range(len(sent)):
             src_word = sent[n]
@@ -29,7 +30,7 @@ class VecmapNgramTranslator:
                 src_word = src_word.decode()
             topk_tgt_words, topk_scores = self.word_translation(src_word, topk)
 
-            if use_lm:
+            if use_lm and self.lm:
                 all_candidates = list()
                 topk_zipped = list(zip(topk_tgt_words, topk_scores))
                 for sequence, sequence_score in beam:
@@ -42,6 +43,37 @@ class VecmapNgramTranslator:
                         lex_score = lex_scaling * log(score)
                         lm_score = lm_scaling * (
                                     self.lm.score(tgt_word, sequence) - lm_score_history)
+                        new_sequence_score = sequence_score + lex_score + lm_score
+                        all_candidates.append([new_sequence, new_sequence_score])
+                ordered = sorted(all_candidates, key=lambda x: x[1], reverse=True)
+                beam = ordered[:beam_size]
+            else:
+                beam[0][0].append(topk_tgt_words[0])
+                beam[0][1] += log(topk_scores[0])
+        return beam[0][0]
+
+    def kenlm_ngram_translation(self, sent, topk, use_lm=True, lm_scaling=0.1, lex_scaling=1.0, beam_size=10):
+        beam = [[list(), 0.0]]
+        for n in range(len(sent)):
+            src_word = sent[n]
+            if type(src_word) == bytes:
+                src_word = src_word.decode()
+            topk_tgt_words, topk_scores = self.word_translation(src_word, topk)
+
+            if use_lm and self.lm:
+                all_candidates = list()
+
+                topk_zipped = list(zip(topk_tgt_words, topk_scores))
+                for sequence, sequence_score in beam:
+                    lm_score_history = self.lm.score(' '.join(sequence), bos=True, eos=False)
+                    for tgt_word, score in topk_zipped:
+                        eos = False
+                        if n == len(sent) - 1:
+                            eos = True
+                        new_sequence = sequence + [tgt_word]
+                        lex_score = lex_scaling * log(score)
+                        lm_score = lm_scaling * (
+                                    self.lm.score(' '.join(new_sequence), bos=True, eos=eos) - lm_score_history)
                         new_sequence_score = sequence_score + lex_score + lm_score
                         all_candidates.append([new_sequence, new_sequence_score])
                 ordered = sorted(all_candidates, key=lambda x: x[1], reverse=True)

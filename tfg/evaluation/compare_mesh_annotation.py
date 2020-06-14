@@ -101,7 +101,21 @@ def main():
     lca_hierarchical_precision = precision(lca_hierarchical_target_correct_hits, lca_hierarchical_target_gain)
     lca_hierarchical_recall = recall(lca_hierarchical_target_correct_hits, lca_hierarchical_target_loss)
     lca_hierarchical_f_score = f_score(lca_hierarchical_precision, lca_hierarchical_recall)
-    print(1)
+
+    print('BASE')
+    print(f'Precision: {base_precision}')
+    print(f'Recall: {base_recall}')
+    print(f'F-score: {base_f_score}')
+    print('-'*30)
+    print('HIERARCHICAL')
+    print(f'Precision: {hierarchical_precision}')
+    print(f'Recall: {hierarchical_recall}')
+    print(f'F-score: {hierarchical_f_score}')
+    print('-' * 30)
+    print('HIERARCHICAL LCA')
+    print(f'Precision: {lca_hierarchical_precision}')
+    print(f'Recall: {lca_hierarchical_recall}')
+    print(f'F-score: {lca_hierarchical_f_score}')
     """
     # calculate metrics at descriptor level
     descriptor_df['hits_original'] = descriptor_df['ui'].apply(
