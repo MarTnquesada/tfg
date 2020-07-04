@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 from tfg.evaluation.metrics import precision, recall, loss, f_score
 from tfg.utilities import parse_mesh, mesh_ancestors, mesh_lowest_common_ancestors, flatten
+from tfg.evaluation.metrics import kl
 import pickle
 import xml.etree.ElementTree as ET
 
@@ -29,7 +30,7 @@ def main():
     else:
         tree = ET.parse(args.mesh)
         hierarchical_dict, descriptor_list = parse_mesh(tree)
-    descriptor_df = pd.DataFrame(descriptor_list)
+    descriptor_df = pd.DataFrame(descriptor_list[:15])
     # filter data
     descriptor_df = descriptor_df[['ui', 'tree_numbers', 'name']]
 
@@ -101,7 +102,7 @@ def main():
     lca_hierarchical_precision = precision(lca_hierarchical_target_correct_hits, lca_hierarchical_target_gain)
     lca_hierarchical_recall = recall(lca_hierarchical_target_correct_hits, lca_hierarchical_target_loss)
     lca_hierarchical_f_score = f_score(lca_hierarchical_precision, lca_hierarchical_recall)
-
+    print(f'{"*"*15}MICRO{"*"*15}')
     print('BASE')
     print(f'Precision: {base_precision}')
     print(f'Recall: {base_recall}')
@@ -116,6 +117,133 @@ def main():
     print(f'Precision: {lca_hierarchical_precision}')
     print(f'Recall: {lca_hierarchical_recall}')
     print(f'F-score: {lca_hierarchical_f_score}')
+
+    # base
+    descriptor_df['n_annots_target_base'] = descriptor_df['ui'].apply(
+        lambda x: sum(any([1 for d in descriptors if d['ui'] == x])
+                      for descriptors in aligned_df['descriptors_target']))
+    descriptor_df['target_loss_base'] = descriptor_df['ui'].apply(
+        lambda x: sum(len(loss([d['ui'] for d in descriptors_original if d['ui'] == x],
+                           [d['ui'] for d in descriptors_target if d['ui'] == x]))
+                      for descriptors_original, descriptors_target
+                      in zip(aligned_df['descriptors_original'], aligned_df['descriptors_target'])))
+    descriptor_df['target_gain_base'] = descriptor_df['ui'].apply(
+        lambda x: sum(len(loss([d['ui'] for d in descriptors_target if d['ui'] == x],
+                               [d['ui'] for d in descriptors_original if d['ui'] == x]))
+                      for descriptors_original, descriptors_target
+                      in zip(aligned_df['descriptors_original'], aligned_df['descriptors_target'])))
+    descriptor_df['target_correct_hits_base'] = descriptor_df.apply(
+        lambda x: x['n_annots_target_base'] - x['target_gain_base'] ,
+        axis=1)
+    descriptor_df['precision_base'] = descriptor_df.apply(
+        lambda x: precision(x['target_correct_hits_base'], x['target_gain_base']),
+        axis=1)
+    descriptor_df['recall_base'] = descriptor_df.apply(
+        lambda x: recall(x['target_correct_hits_base'], x['target_loss_base']),
+        axis=1)
+    descriptor_df['f_score_base'] = descriptor_df.apply(
+        lambda x: f_score(x['precision_base'], x['recall_base']),
+        axis=1)
+
+    # hierarchical
+    descriptor_df['n_annots_target_hierarchical'] = descriptor_df['tree_numbers'].apply(
+        lambda x: sum(any([1 for n in numbers if n in x])
+                      for numbers in aligned_df['y_target']))
+    descriptor_df['target_loss_hierarchical'] = descriptor_df['tree_numbers'].apply(
+        lambda x: sum(any(loss([n for n in y_original if n in x],
+                               [n for n in y_target if n in x]))
+                      for y_original, y_target
+                      in zip(aligned_df['y_original'], aligned_df['y_target'])))
+    descriptor_df['target_gain_hierarchical'] = descriptor_df['tree_numbers'].apply(
+        lambda x: sum(any(loss([n for n in y_target if n in x],
+                               [n for n in y_original if n in x]))
+                      for y_original, y_target
+                      in zip(aligned_df['y_original'], aligned_df['y_target'])))
+    descriptor_df['target_correct_hits_hierarchical'] = descriptor_df.apply(
+        lambda x: x['n_annots_target_hierarchical'] - x['target_gain_hierarchical'],
+        axis=1)
+    descriptor_df['precision_hierarchical'] = descriptor_df.apply(
+        lambda x: precision(x['target_correct_hits_hierarchical'], x['target_gain_hierarchical']),
+        axis=1)
+    descriptor_df['recall_hierarchical'] = descriptor_df.apply(
+        lambda x: recall(x['target_correct_hits_hierarchical'], x['target_loss_hierarchical']),
+        axis=1)
+    descriptor_df['f_score_hierarchical'] = descriptor_df.apply(
+        lambda x: f_score(x['precision_hierarchical'], x['recall_hierarchical']),
+        axis=1)
+
+    # hierarchical_lca
+    descriptor_df['n_annots_target_hierarchical_lca'] = descriptor_df['tree_numbers'].apply(
+        lambda x: sum(any([1 for n in numbers if n in x])
+                      for numbers in aligned_df['yag_target']))
+    descriptor_df['target_loss_hierarchical_lca'] = descriptor_df['tree_numbers'].apply(
+        lambda x: sum(any(loss([n for n in yag_original if n in x],
+                               [n for n in yag_target if n in x]))
+                      for yag_original, yag_target
+                      in zip(aligned_df['yag_original'], aligned_df['yag_target'])))
+    descriptor_df['target_gain_hierarchical_lca'] = descriptor_df['tree_numbers'].apply(
+        lambda x: sum(any(loss([n for n in yag_target if n in x],
+                               [n for n in yag_original if n in x]))
+                      for yag_original, yag_target
+                      in zip(aligned_df['yag_original'], aligned_df['yag_target'])))
+    descriptor_df['target_correct_hits_hierarchical_lca'] = descriptor_df.apply(
+        lambda x: x['n_annots_target_hierarchical_lca'] - x['target_gain_hierarchical_lca'],
+        axis=1)
+    descriptor_df['precision_hierarchical_lca'] = descriptor_df.apply(
+        lambda x: precision(x['target_correct_hits_hierarchical_lca'], x['target_gain_hierarchical_lca']),
+        axis=1)
+    descriptor_df['recall_hierarchical_lca'] = descriptor_df.apply(
+        lambda x: recall(x['target_correct_hits_hierarchical_lca'], x['target_loss_hierarchical_lca']),
+        axis=1)
+    descriptor_df['f_score_hierarchical_lca'] = descriptor_df.apply(
+        lambda x: f_score(x['precision_hierarchical_lca'], x['recall_hierarchical_lca']),
+        axis=1)
+    """
+    # drop cases where true positives + false negatives= 0, that is, where recall is undefined (nan)
+    descriptor_df = descriptor_df.dropna(axis=0, subset=['recall_base'])
+    # score with 0 cases where true positives + false positives = 0, that is, where precision is undefined (nan)
+    descriptor_df['precision_base'] = descriptor_df['precision_base'].apply(lambda x: 0 if pd.isna(x) else x)
+    descriptor_df['f_score_base'] = descriptor_df['f_score_base'].apply(lambda x: 0 if pd.isna(x) else x)
+    
+    In some rare cases, the calculation of Precision or Recall can cause a division by 0. Regarding the precision, this can happen if there are no results inside the answer of an annotator and, thus, the true as well as the false positives are 0. For these special cases, we have defined that if the true positives, false positives and false negatives are all 0, the precision, recall and F1-measure are 1. This might occur in cases in which the gold standard contains a document without any annotations and the annotator (correctly) returns no annotations. If true positives are 0 and one of the two other counters is larger than 0, the precision, recall and F1-measure are 0.
+    """
+    descriptor_df = descriptor_df[['precision_base', 'recall_base', 'f_score_base']].apply(
+        lambda x: (1, 1, 1)
+        if pd.isna(x['precision_base']) and pd.isna(x['recall_base']) and pd.isna(x['f_score_base'])
+        else (0, 0, 0) if pd.isna(x['precision_base']) or pd.isna(x['recall_base'])
+        else x, axis=1)
+
+    print(f'{"*" * 15}MACRO{"*" * 15}')
+    print('BASE')
+    print(f'Precision: {descriptor_df["precision_base"].mean()}')
+    print(f'Recall: {descriptor_df["recall_base"].mean()}')
+    print(f'F-score: {descriptor_df["f_score_base"].mean()}')
+    print('-' * 30)
+    print('HIERARCHICAL')
+    print(f'Precision: {descriptor_df["precision_hierarchical"].mean()}')
+    print(f'Recall: {descriptor_df["recall_hierarchical"].mean()}')
+    print(f'F-score: {descriptor_df["f_score_hierarchical"].mean()}')
+    print('-' * 30)
+    print('HIERARCHICAL LCA')
+    print(f'Precision: {descriptor_df["precision_hierarchical_lca"].mean()}')
+    print(f'Recall: {descriptor_df["recall_hierarchical_lca"].mean()}')
+    print(f'F-score: {descriptor_df["f_score_hierarchical_lca"].mean()}')
+
+    # obtain all original and target frequencies
+    descriptor_df['freq_original'] = descriptor_df['ui'].apply(
+        lambda x: sum(
+            1 for descriptors in aligned_df['descriptors_original'] if x in set([d['ui'] for d in descriptors])) / len(
+            aligned_df))
+    descriptor_df['freq_target'] = descriptor_df['ui'].apply(
+        lambda x: sum(
+            1 for descriptors in aligned_df['descriptors_target'] if x in set([d['ui'] for d in descriptors])) / len(
+            aligned_df))
+    # kld calculation
+    kld = kl(descriptor_df['freq_original'], descriptor_df['freq_target'], unit='log', smoothing=True)
+
+    print('*' * 30)
+    print(f'KLD: {kld}')
+
     """
     # calculate metrics at descriptor level
     descriptor_df['hits_original'] = descriptor_df['ui'].apply(
